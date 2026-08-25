@@ -1,0 +1,159 @@
+-- // ZwacHub v10.9 - Dynamic Quest, Auto Roll & Auto Buy Arrows // --
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- // KOORDİNAT VE GÖREV YAPILANDIRMASI // --
+local HOVER_HEIGHT = 8
+
+local QuestData = {
+    ["Bruford"] = { 
+        RemoteArg = "BrufordHamonVeteran", 
+        MobName = "Hamon Veteran", 
+        KillsRequired = 3,
+        NpcPos = Vector3.new(101, -116, -1513),
+        FarmPos = Vector3.new(101, -116, -1513)
+    },
+    ["Polnareff"] = { 
+        RemoteArg = "admpn", 
+        MobName = "Polnareff", 
+        KillsRequired = 1,
+        NpcPos = Vector3.new(15935, 238, -9070),
+        FarmPos = Vector3.new(15935, 238, -9070)
+    }
+}
+
+local Settings = { 
+    SelectedQuest = "Bruford",
+    AutoQuest = false, 
+    AutoStand = false,
+    AutoRoll = false,
+    PlayerESP = false,
+    MobESP = false,
+    LastE = 0,
+    SkillE = true,
+    SkillT = true,
+    SkillR = true,
+    SkillX = true,
+    SkillH = false,
+    SkillJ = false,
+    SkillMB1 = false,
+    -- Hedeflenen Özellikler (Attribute)
+    TargetAttributes = {
+        ["Legendary"] = true,
+        ["Forceful"] = true,
+        ["Thief"] = true,
+        ["Invincible"] = true,
+        ["Critical"] = true,
+        ["Tragic"] = true,
+        ["None"] = false
+    }
+}
+
+local Remotes = ReplicatedStorage:FindFirstChild("Library") and ReplicatedStorage.Library:FindFirstChild("Remotes")
+local QuestRemote = Remotes and Remotes:FindFirstChild("Quest")
+local ItemRemote = Remotes and Remotes:FindFirstChild("Send")
+
+-- // STATE MACHINE DEĞİŞKENLERİ // --
+local CurrentState = "START_QUEST"
+local KillCount = 0
+local CurrentTarget = nil
+local LastTarget = nil
+
+-- // ATTRIBUTE VE STAND TESPİTİ // --
+local function GetCurrentAttribute()
+    local attrVal = nil
+    pcall(function()
+        local dataFolder = LocalPlayer:FindFirstChild("Data")
+        if dataFolder then
+            local stats = dataFolder:FindFirstChild("Stats")
+            if stats then
+                local attrObj = stats:FindFirstChild("Attribute")
+                if attrObj then
+                    if attrObj:IsA("ValueBase") then
+                        attrVal = tostring(attrObj.Value)
+                    else
+                        attrVal = tostring(attrObj)
+                    end
+                else
+                    local attrAttr = stats:GetAttribute("Attribute")
+                    if attrAttr then attrVal = tostring(attrAttr) end
+                end
+            end
+        end
+    end)
+    if not attrVal or attrVal == "" then
+        return "None"
+    end
+    return attrVal
+end
+
+local function GetTargetMob()
+    local livingFolder = workspace:FindFirstChild("World") and workspace.World:FindFirstChild("Living")
+    if livingFolder then
+        local targetName = QuestData[Settings.SelectedQuest].MobName
+        for _, mob in pairs(livingFolder:GetChildren()) do
+            if mob.Name == targetName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                return mob
+            end
+        end
+    end
+    return nil
+end
+
+-- // CORE GUI ROOT // --
+local parentTarget = (gethui and gethui()) or (game:GetService("CoreGui"):FindFirstChild("RobloxGui") or game:GetService("CoreGui"))
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ZwacHub_v10_9"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = parentTarget
+
+-- // 1. YÜZEN YUVARLAK "Z" BUTONU // --
+local ZButton = Instance.new("TextButton")
+ZButton.Name = "Zwac_Z_Button"
+ZButton.Size = UDim2.new(0, 45, 0, 45)
+ZButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+ZButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+ZButton.Text = "Z"
+ZButton.TextColor3 = Color3.fromRGB(220, 30, 30)
+ZButton.TextSize = 22
+ZButton.Font = Enum.Font.SourceSansBold
+ZButton.Active = true
+ZButton.Draggable = true
+ZButton.Visible = false
+ZButton.Parent = ScreenGui
+
+local ZCorner = Instance.new("UICorner")
+ZCorner.CornerRadius = UDim.new(1, 0)
+ZCorner.Parent = ZButton
+
+local ZStroke = Instance.new("UIStroke")
+ZStroke.Color = Color3.fromRGB(220, 30, 30)
+ZStroke.Thickness = 2
+ZStroke.Parent = ZButton
+
+-- // 2. ANA PENCERE // --
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 440, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -220, 0.25, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(180, 25, 25)
+MainStroke.Thickness = 1.5
+MainStroke.Parent = MainFrame
+
+-- Top Bar
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 32)
+TopBar.Backgrou
