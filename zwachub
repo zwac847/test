@@ -156,4 +156,402 @@ MainStroke.Parent = MainFrame
 -- Top Bar
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 32)
-TopBar.Backgrou
+TopBar.BackgroundTransparency = 1
+TopBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "ZwacHub v10.9 | Quest, Roll & Auto Buy"
+Title.TextColor3 = Color3.fromRGB(220, 35, 35)
+Title.TextSize = 15
+Title.Font = Enum.Font.SourceSansBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 28, 0, 24)
+MinimizeBtn.Position = UDim2.new(1, -32, 0, 4)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 16
+MinimizeBtn.Font = Enum.Font.SourceSansBold
+MinimizeBtn.Parent = TopBar
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 4)
+MinCorner.Parent = MinimizeBtn
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -20, 0, 18)
+StatusLabel.Position = UDim2.new(0, 10, 0, 30)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Görev: Bruford | Attribute: Tespit Ediliyor..."
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 12
+StatusLabel.Font = Enum.Font.SourceSansSemibold
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = MainFrame
+
+-- Sidebar & Content
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 110, 1, -54)
+Sidebar.Position = UDim2.new(0, 6, 0, 50)
+Sidebar.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+Sidebar.Parent = MainFrame
+
+local SideCorner = Instance.new("UICorner")
+SideCorner.CornerRadius = UDim.new(0, 6)
+SideCorner.Parent = Sidebar
+
+local SideList = Instance.new("UIListLayout")
+SideList.Parent = Sidebar
+SideList.Padding = UDim.new(0, 4)
+
+local ContentArea = Instance.new("Frame")
+ContentArea.Size = UDim2.new(1, -128, 1, -54)
+ContentArea.Position = UDim2.new(0, 122, 0, 50)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = MainFrame
+
+local Tabs = {}
+local TabButtons = {}
+
+local function CreateTab(name)
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Size = UDim2.new(1, 0, 1, 0)
+    Scroll.BackgroundTransparency = 1
+    Scroll.ScrollBarThickness = 3
+    Scroll.ScrollBarImageColor3 = Color3.fromRGB(220, 30, 30)
+    Scroll.Visible = false
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Scroll.Parent = ContentArea
+    
+    local List = Instance.new("UIListLayout")
+    List.Parent = Scroll
+    List.Padding = UDim.new(0, 5)
+    
+    List:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, List.AbsoluteContentSize.Y + 10)
+    end)
+    
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -6, 0, 28)
+    Btn.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
+    Btn.Text = name
+    Btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Btn.TextSize = 12
+    Btn.Font = Enum.Font.SourceSansSemibold
+    Btn.Parent = Sidebar
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 4)
+    BtnCorner.Parent = Btn
+    
+    Tabs[name] = Scroll
+    TabButtons[name] = Btn
+    
+    Btn.MouseButton1Click:Connect(function()
+        for tName, tScroll in pairs(Tabs) do
+            tScroll.Visible = (tName == name)
+            TabButtons[tName].BackgroundColor3 = (tName == name) and Color3.fromRGB(180, 25, 25) or Color3.fromRGB(32, 32, 40)
+            TabButtons[tName].TextColor3 = (tName == name) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+        end
+    end)
+    
+    return Scroll
+end
+
+local QuestTab = CreateTab("Auto Quest")
+local RollTab = CreateTab("Auto Roll")
+local VisualsTab = CreateTab("Visuals / ESP")
+local MiscTab = CreateTab("Misc / Settings")
+
+Tabs["Auto Quest"].Visible = true
+TabButtons["Auto Quest"].BackgroundColor3 = Color3.fromRGB(180, 25, 25)
+TabButtons["Auto Quest"].TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local function AddToggle(parentTab, text, settingKey)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -8, 0, 28)
+    Btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(180, 25, 25) or Color3.fromRGB(30, 30, 36)
+    Btn.Text = text .. (Settings[settingKey] and ": ON" or ": OFF")
+    Btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.TextSize = 12
+    Btn.Font = Enum.Font.SourceSansSemibold
+    Btn.Parent = parentTab
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(function()
+        Settings[settingKey] = not Settings[settingKey]
+        if Settings[settingKey] then
+            Btn.Text = text .. ": ON"
+            Btn.BackgroundColor3 = Color3.fromRGB(180, 25, 25)
+            Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            Btn.Text = text .. ": OFF"
+            Btn.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+            Btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end
+    end)
+end
+
+-- Görev Seçimi
+local QuestSelectBtn = Instance.new("TextButton")
+QuestSelectBtn.Size = UDim2.new(1, -8, 0, 28)
+QuestSelectBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+QuestSelectBtn.Text = "Hedef Görev: Bruford"
+QuestSelectBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+QuestSelectBtn.TextSize = 12
+QuestSelectBtn.Font = Enum.Font.SourceSansBold
+QuestSelectBtn.Parent = QuestTab
+
+local QSCorner = Instance.new("UICorner")
+QSCorner.CornerRadius = UDim.new(0, 4)
+QSCorner.Parent = QuestSelectBtn
+
+QuestSelectBtn.MouseButton1Click:Connect(function()
+    if Settings.SelectedQuest == "Bruford" then
+        Settings.SelectedQuest = "Polnareff"
+        QuestSelectBtn.Text = "Hedef Görev: Polnareff"
+    else
+        Settings.SelectedQuest = "Bruford"
+        QuestSelectBtn.Text = "Hedef Görev: Bruford"
+    end
+    CurrentState = "START_QUEST"
+end)
+
+AddToggle(QuestTab, "Auto Quest & Mob", "AutoQuest")
+AddToggle(QuestTab, "Skill [E] (7s CD)", "SkillE")
+AddToggle(QuestTab, "Skill [T]", "SkillT")
+AddToggle(QuestTab, "Skill [R]", "SkillR")
+AddToggle(QuestTab, "Skill [X]", "SkillX")
+
+-- Roll Controls & Auto Buy
+AddToggle(RollTab, "Auto Roll Attribute", "AutoRoll")
+
+local BuyArrowBtn = Instance.new("TextButton")
+BuyArrowBtn.Size = UDim2.new(1, -8, 0, 28)
+BuyArrowBtn.BackgroundColor3 = Color3.fromRGB(180, 100, 25)
+BuyArrowBtn.Text = "Buy 500x Arrow (D4CShop)"
+BuyArrowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+BuyArrowBtn.TextSize = 12
+BuyArrowBtn.Font = Enum.Font.SourceSansBold
+BuyArrowBtn.Parent = RollTab
+
+local BuyCorner = Instance.new("UICorner")
+BuyCorner.CornerRadius = UDim.new(0, 4)
+BuyCorner.Parent = BuyArrowBtn
+
+local isBuying = false
+BuyArrowBtn.MouseButton1Click:Connect(function()
+    if isBuying then return end
+    isBuying = true
+    BuyArrowBtn.Text = "Satın Alınıyor (0/500)..."
+    
+    task.spawn(function()
+        for i = 1, 500 do
+            if ItemRemote then
+                pcall(function()
+                    ItemRemote:FireServer("Merchant", "D4CShop", 5)
+                end)
+            end
+            if i % 25 == 0 then
+                BuyArrowBtn.Text = "Satın Alınıyor (" .. i .. "/500)..."
+                task.wait(0.02)
+            end
+        end
+        BuyArrowBtn.Text = "Buy 500x Arrow (Tamamlandı)"
+        task.wait(1.5)
+        BuyArrowBtn.Text = "Buy 500x Arrow (D4CShop)"
+        isBuying = false
+    end)
+end)
+
+local AttrHeader = Instance.new("TextLabel")
+AttrHeader.Size = UDim2.new(1, -8, 0, 20)
+AttrHeader.BackgroundTransparency = 1
+AttrHeader.Text = "--- SAKLANACAK ATTRIBUTE'LAR ---"
+AttrHeader.TextColor3 = Color3.fromRGB(220, 30, 30)
+AttrHeader.TextSize = 11
+AttrHeader.Font = Enum.Font.SourceSansBold
+AttrHeader.Parent = RollTab
+
+for attrName, state in pairs(Settings.TargetAttributes) do
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -8, 0, 26)
+    Btn.BackgroundColor3 = Settings.TargetAttributes[attrName] and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(30, 30, 36)
+    Btn.Text = attrName .. (Settings.TargetAttributes[attrName] and " [SAKLA]" or " [GEÇ]")
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextSize = 11
+    Btn.Font = Enum.Font.SourceSansSemibold
+    Btn.Parent = RollTab
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(function()
+        Settings.TargetAttributes[attrName] = not Settings.TargetAttributes[attrName]
+        if Settings.TargetAttributes[attrName] then
+            Btn.Text = attrName .. " [SAKLA]"
+            Btn.BackgroundColor3 = Color3.fromRGB(40, 120, 40)
+        else
+            Btn.Text = attrName .. " [GEÇ]"
+            Btn.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+        end
+    end)
+end
+
+AddToggle(VisualsTab, "Player ESP", "PlayerESP")
+AddToggle(VisualsTab, "Mob ESP", "MobESP")
+AddToggle(MiscTab, "Auto Stand (Q)", "AutoStand")
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    ZButton.Visible = true
+end)
+
+ZButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    ZButton.Visible = false
+end)
+
+-- // INPUT HELPERS // --
+local function PressKey(key) 
+    VirtualInputManager:SendKeyEvent(true, key, false, game)
+    task.wait(0.04)
+    VirtualInputManager:SendKeyEvent(false, key, false, game)
+end
+
+local function PressMB1()
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+    task.wait(0.04)
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+-- // AUTO ROLL DÖNGÜSÜ // --
+task.spawn(function()
+    while task.wait(1.2) do
+        local currentAttr = GetCurrentAttribute()
+        
+        if Settings.AutoRoll then
+            local isWanted = false
+            for targetName, enabled in pairs(Settings.TargetAttributes) do
+                if enabled and string.lower(currentAttr) == string.lower(targetName) then
+                    isWanted = true
+                    break
+                end
+            end
+            
+            if isWanted then
+                Settings.AutoRoll = false
+                StatusLabel.Text = "HEDEF GELDI: " .. currentAttr .. "!"
+            else
+                -- İstenen özellik değilse Rokakaka + Unusual Arrow at
+                if ItemRemote then
+                    pcall(function() 
+                        ItemRemote:FireServer("Item", "Rokakaka")
+                        task.wait(0.8)
+                        ItemRemote:FireServer("Item", "Unusual Arrow")
+                    end)
+                end
+            end
+        end
+    end
+end)
+
+-- // FLIGHT ENGINE // --
+RunService.Heartbeat:Connect(function()
+    if Settings.AutoQuest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        local activeQuest = QuestData[Settings.SelectedQuest]
+        
+        if CurrentState == "FARMING" then
+            if CurrentTarget and CurrentTarget:FindFirstChild("HumanoidRootPart") then
+                local mobPos = CurrentTarget.HumanoidRootPart.Position
+                local hoverPos = mobPos + Vector3.new(0, HOVER_HEIGHT, 0)
+                root.CFrame = CFrame.lookAt(hoverPos, mobPos + Vector3.new(0, 0, 0.001))
+            else
+                local hoverPos = activeQuest.FarmPos + Vector3.new(0, HOVER_HEIGHT, 0)
+                root.CFrame = CFrame.lookAt(hoverPos, activeQuest.FarmPos + Vector3.new(0, 0, 0.001))
+            end
+        else
+            root.CFrame = CFrame.new(activeQuest.NpcPos)
+        end
+        root.AssemblyLinearVelocity = Vector3.zero
+    end
+end)
+
+-- // DYNAMIC QUEST & FARM LOOP // --
+task.spawn(function()
+    while task.wait(0.15) do
+        local currentAttr = GetCurrentAttribute()
+        
+        if Settings.AutoStand and LocalPlayer.Character and not LocalPlayer.Character:FindFirstChild("Stand") then
+            PressKey(Enum.KeyCode.Q)
+        end
+
+        if Settings.AutoQuest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local activeQuest = QuestData[Settings.SelectedQuest]
+            StatusLabel.Text = "Görev: " .. Settings.SelectedQuest .. " | Attr: " .. currentAttr .. " | Kesilen: " .. KillCount .. "/" .. activeQuest.KillsRequired
+
+            if CurrentState == "START_QUEST" then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(activeQuest.NpcPos)
+                task.wait(0.5)
+                if QuestRemote then
+                    pcall(function() QuestRemote:InvokeServer("Start", activeQuest.RemoteArg) end)
+                end
+                KillCount = 0
+                CurrentTarget = nil
+                LastTarget = nil
+                task.wait(0.5)
+                CurrentState = "FARMING"
+
+            elseif CurrentState == "FARMING" then
+                CurrentTarget = GetTargetMob()
+
+                if CurrentTarget ~= LastTarget then
+                    if LastTarget and (not LastTarget:FindFirstChild("Humanoid") or LastTarget.Humanoid.Health <= 0 or not LastTarget.Parent) then
+                        KillCount = KillCount + 1
+                    end
+                    LastTarget = CurrentTarget
+                end
+
+                if KillCount >= activeQuest.KillsRequired then
+                    CurrentState = "COMPLETE_QUEST"
+                elseif CurrentTarget then
+                    if Settings.SkillE and (tick() - Settings.LastE) >= 7 then
+                        PressKey(Enum.KeyCode.E)
+                        Settings.LastE = tick()
+                    end
+                    if Settings.SkillT then PressKey(Enum.KeyCode.T) end
+                    if Settings.SkillR then PressKey(Enum.KeyCode.R) end
+                    if Settings.SkillX then PressKey(Enum.KeyCode.X) end
+                end
+
+            elseif CurrentState == "COMPLETE_QUEST" then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(activeQuest.NpcPos)
+                task.wait(0.5)
+                if QuestRemote then
+                    pcall(function()
+                        QuestRemote:InvokeServer("Response", activeQuest.RemoteArg)
+                        task.wait(0.3)
+                        QuestRemote:InvokeServer("Start", activeQuest.RemoteArg)
+                    end)
+                end
+                KillCount = 0
+                CurrentTarget = nil
+                LastTarget = nil
+                task.wait(0.5)
+                CurrentState = "FARMING"
+            end
+        end
+    end
+end)
