@@ -1,4 +1,4 @@
--- // ZwacHub v11.0 - Auto Quest, Roll, Anti-AFK & Path Patrol // --
+-- // ZwacHub v11.1 - Fully Restored Complete Edition // --
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -26,7 +26,7 @@ local QuestData = {
     }
 }
 
--- Custom Path (Devriye) Noktaları
+-- Devriye Noktaları
 local Waypoints = {
     Vector3.new(101, -116, -1513),
     Vector3.new(140, -116, -1500),
@@ -48,7 +48,6 @@ local Settings = {
     SkillT = true,
     SkillR = true,
     SkillX = true,
-    -- Hedeflenen Özellikler (Attribute)
     TargetAttributes = {
         ["Legendary"] = true,
         ["Forceful"] = true,
@@ -64,7 +63,7 @@ local Remotes = ReplicatedStorage:FindFirstChild("Library") and ReplicatedStorag
 local QuestRemote = Remotes and Remotes:FindFirstChild("Quest")
 local ItemRemote = Remotes and Remotes:FindFirstChild("Send")
 
--- // ANTI-AFK ENGINE (Roblox Idle Kick Bypass) // --
+-- // ANTI-AFK ENGINE // --
 LocalPlayer.Idled:Connect(function()
     if Settings.AntiAFK then
         VirtualUser:CaptureController()
@@ -78,7 +77,7 @@ local KillCount = 0
 local CurrentTarget = nil
 local LastTarget = nil
 
--- // ATTRIBUTE TESPİTİ // --
+-- // ATTRIBUTE VE MOB TESPİTİ // --
 local function GetCurrentAttribute()
     local attrVal = nil
     pcall(function()
@@ -115,12 +114,13 @@ end
 -- // CORE GUI ROOT // --
 local parentTarget = (gethui and gethui()) or (game:GetService("CoreGui"):FindFirstChild("RobloxGui") or game:GetService("CoreGui"))
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ZwacHub_v11_0"
+ScreenGui.Name = "ZwacHub_v11_1"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parentTarget
 
--- Floating Button
+-- Floating "Z" Button
 local ZButton = Instance.new("TextButton")
+ZButton.Name = "Zwac_Z_Button"
 ZButton.Size = UDim2.new(0, 45, 0, 45)
 ZButton.Position = UDim2.new(0.05, 0, 0.2, 0)
 ZButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
@@ -137,8 +137,14 @@ local ZCorner = Instance.new("UICorner")
 ZCorner.CornerRadius = UDim.new(1, 0)
 ZCorner.Parent = ZButton
 
+local ZStroke = Instance.new("UIStroke")
+ZStroke.Color = Color3.fromRGB(220, 30, 30)
+ZStroke.Thickness = 2
+ZStroke.Parent = ZButton
+
 -- Main Window
 local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 440, 0, 320)
 MainFrame.Position = UDim2.new(0.5, -220, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
@@ -150,6 +156,11 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 8)
 MainCorner.Parent = MainFrame
 
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(180, 25, 25)
+MainStroke.Thickness = 1.5
+MainStroke.Parent = MainFrame
+
 -- Top Bar
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 32)
@@ -160,7 +171,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -40, 1, 0)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "ZwacHub v11.0 | Anti-AFK & Path Patrol"
+Title.Text = "ZwacHub v11.1 | Complete Edition"
 Title.TextColor3 = Color3.fromRGB(220, 35, 35)
 Title.TextSize = 15
 Title.Font = Enum.Font.SourceSansBold
@@ -177,12 +188,16 @@ MinimizeBtn.TextSize = 16
 MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.Parent = TopBar
 
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 4)
+MinCorner.Parent = MinimizeBtn
+
 -- Status Label
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(1, -20, 0, 18)
 StatusLabel.Position = UDim2.new(0, 10, 0, 30)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Durum: Bekleniyor..."
+StatusLabel.Text = "Görev: Bruford | Attribute: Tespit Ediliyor..."
 StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 StatusLabel.TextSize = 12
 StatusLabel.Font = Enum.Font.SourceSansSemibold
@@ -195,6 +210,10 @@ Sidebar.Size = UDim2.new(0, 110, 1, -54)
 Sidebar.Position = UDim2.new(0, 6, 0, 50)
 Sidebar.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 Sidebar.Parent = MainFrame
+
+local SideCorner = Instance.new("UICorner")
+SideCorner.CornerRadius = UDim.new(0, 6)
+SideCorner.Parent = Sidebar
 
 local SideList = Instance.new("UIListLayout")
 SideList.Parent = Sidebar
@@ -214,6 +233,7 @@ local function CreateTab(name)
     Scroll.Size = UDim2.new(1, 0, 1, 0)
     Scroll.BackgroundTransparency = 1
     Scroll.ScrollBarThickness = 3
+    Scroll.ScrollBarImageColor3 = Color3.fromRGB(220, 30, 30)
     Scroll.Visible = false
     Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     Scroll.Parent = ContentArea
@@ -235,6 +255,10 @@ local function CreateTab(name)
     Btn.Font = Enum.Font.SourceSansSemibold
     Btn.Parent = Sidebar
     
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 4)
+    BtnCorner.Parent = Btn
+    
     Tabs[name] = Scroll
     TabButtons[name] = Btn
     
@@ -251,29 +275,36 @@ end
 local QuestTab = CreateTab("Auto Quest")
 local RollTab = CreateTab("Auto Roll")
 local PathTab = CreateTab("Path / AFK")
+local VisualsTab = CreateTab("Visuals / ESP")
 local MiscTab = CreateTab("Misc / Settings")
 
 Tabs["Auto Quest"].Visible = true
 TabButtons["Auto Quest"].BackgroundColor3 = Color3.fromRGB(180, 25, 25)
+TabButtons["Auto Quest"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local function AddToggle(parentTab, text, settingKey)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, -8, 0, 28)
     Btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(180, 25, 25) or Color3.fromRGB(30, 30, 36)
     Btn.Text = text .. (Settings[settingKey] and ": ON" or ": OFF")
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.TextSize = 12
     Btn.Font = Enum.Font.SourceSansSemibold
     Btn.Parent = parentTab
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
     
     Btn.MouseButton1Click:Connect(function()
         Settings[settingKey] = not Settings[settingKey]
         Btn.Text = text .. (Settings[settingKey] and ": ON" or ": OFF")
         Btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(180, 25, 25) or Color3.fromRGB(30, 30, 36)
+        Btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     end)
 end
 
--- Görev Ayarları
+-- 1. AUTO QUEST TAB
 local QuestSelectBtn = Instance.new("TextButton")
 QuestSelectBtn.Size = UDim2.new(1, -8, 0, 28)
 QuestSelectBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
@@ -283,6 +314,10 @@ QuestSelectBtn.TextSize = 12
 QuestSelectBtn.Font = Enum.Font.SourceSansBold
 QuestSelectBtn.Parent = QuestTab
 
+local QSCorner = Instance.new("UICorner")
+QSCorner.CornerRadius = UDim.new(0, 4)
+QSCorner.Parent = QuestSelectBtn
+
 QuestSelectBtn.MouseButton1Click:Connect(function()
     Settings.SelectedQuest = (Settings.SelectedQuest == "Bruford") and "Polnareff" or "Bruford"
     QuestSelectBtn.Text = "Hedef Görev: " .. Settings.SelectedQuest
@@ -290,24 +325,87 @@ QuestSelectBtn.MouseButton1Click:Connect(function()
 end)
 
 AddToggle(QuestTab, "Auto Quest & Mob", "AutoQuest")
-AddToggle(QuestTab, "Skill [E]", "SkillE")
+AddToggle(QuestTab, "Skill [E] (7s CD)", "SkillE")
 AddToggle(QuestTab, "Skill [T]", "SkillT")
 AddToggle(QuestTab, "Skill [R]", "SkillR")
 AddToggle(QuestTab, "Skill [X]", "SkillX")
 
--- Roll & Shop
+-- 2. AUTO ROLL & SHOP TAB
 AddToggle(RollTab, "Auto Roll Attribute", "AutoRoll")
 
--- Path & Anti-AFK
+local BuyArrowBtn = Instance.new("TextButton")
+BuyArrowBtn.Size = UDim2.new(1, -8, 0, 28)
+BuyArrowBtn.BackgroundColor3 = Color3.fromRGB(180, 100, 25)
+BuyArrowBtn.Text = "Buy 500x Arrow (D4CShop)"
+BuyArrowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+BuyArrowBtn.TextSize = 12
+BuyArrowBtn.Font = Enum.Font.SourceSansBold
+BuyArrowBtn.Parent = RollTab
+
+local BuyCorner = Instance.new("UICorner")
+BuyCorner.CornerRadius = UDim.new(0, 4)
+BuyCorner.Parent = BuyArrowBtn
+
+local isBuying = false
+BuyArrowBtn.MouseButton1Click:Connect(function()
+    if isBuying then return end
+    isBuying = true
+    BuyArrowBtn.Text = "Satın Alınıyor (0/500)..."
+    task.spawn(function()
+        for i = 1, 500 do
+            if ItemRemote then
+                pcall(function() ItemRemote:FireServer("Merchant", "D4CShop", 5) end)
+            end
+            if i % 25 == 0 then
+                BuyArrowBtn.Text = "Satın Alınıyor (" .. i .. "/500)..."
+                task.wait(0.02)
+            end
+        end
+        BuyArrowBtn.Text = "Buy 500x Arrow (Tamamlandı)"
+        task.wait(1.5)
+        BuyArrowBtn.Text = "Buy 500x Arrow (D4CShop)"
+        isBuying = false
+    end)
+end)
+
+local AttrHeader = Instance.new("TextLabel")
+AttrHeader.Size = UDim2.new(1, -8, 0, 20)
+AttrHeader.BackgroundTransparency = 1
+AttrHeader.Text = "--- SAKLANACAK ATTRIBUTE'LAR ---"
+AttrHeader.TextColor3 = Color3.fromRGB(220, 30, 30)
+AttrHeader.TextSize = 11
+AttrHeader.Font = Enum.Font.SourceSansBold
+AttrHeader.Parent = RollTab
+
+for attrName, _ in pairs(Settings.TargetAttributes) do
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -8, 0, 26)
+    Btn.BackgroundColor3 = Settings.TargetAttributes[attrName] and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(30, 30, 36)
+    Btn.Text = attrName .. (Settings.TargetAttributes[attrName] and " [SAKLA]" or " [GEÇ]")
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextSize = 11
+    Btn.Font = Enum.Font.SourceSansSemibold
+    Btn.Parent = RollTab
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(function()
+        Settings.TargetAttributes[attrName] = not Settings.TargetAttributes[attrName]
+        Btn.Text = attrName .. (Settings.TargetAttributes[attrName] and " [SAKLA]" or " [GEÇ]")
+        Btn.BackgroundColor3 = Settings.TargetAttributes[attrName] and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(30, 30, 36)
+    end)
+end
+
+-- 3. PATH & AFK TAB
 AddToggle(PathTab, "Anti-AFK Kick Bypass", "AntiAFK")
 AddToggle(PathTab, "Auto Path Patrol (Yürüme)", "AutoPath")
 
--- INPUT HELPERS
-local function PressKey(key) 
-    VirtualInputManager:SendKeyEvent(true, key, false, game)
-    task.wait(0.04)
-    VirtualInputManager:SendKeyEvent(false, key, false, game)
-end
+-- 4. VISUALS & MISC TAB
+AddToggle(VisualsTab, "Player ESP", "PlayerESP")
+AddToggle(VisualsTab, "Mob ESP", "MobESP")
+AddToggle(MiscTab, "Auto Stand (Q)", "AutoStand")
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
@@ -319,7 +417,14 @@ ZButton.MouseButton1Click:Connect(function()
     ZButton.Visible = false
 end)
 
--- // PATH PATROL LOOP (Noktalar Arası Yürüme) // --
+-- INPUT HELPERS
+local function PressKey(key) 
+    VirtualInputManager:SendKeyEvent(true, key, false, game)
+    task.wait(0.04)
+    VirtualInputManager:SendKeyEvent(false, key, false, game)
+end
+
+-- // PATH PATROL LOOP // --
 task.spawn(function()
     while task.wait(0.5) do
         if Settings.AutoPath and not Settings.AutoQuest then
@@ -353,6 +458,7 @@ task.spawn(function()
                     break
                 end
             end
+            
             if isWanted then
                 Settings.AutoRoll = false
                 StatusLabel.Text = "HEDEF GELDI: " .. currentAttr .. "!"
@@ -369,7 +475,7 @@ task.spawn(function()
     end
 end)
 
--- // FLIGHT / FARM ENGINE // --
+-- // FLIGHT ENGINE // --
 RunService.Heartbeat:Connect(function()
     if Settings.AutoQuest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local root = LocalPlayer.Character.HumanoidRootPart
@@ -389,10 +495,15 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- // QUEST LOOP // --
+-- // DYNAMIC QUEST & FARM LOOP // --
 task.spawn(function()
     while task.wait(0.15) do
         local currentAttr = GetCurrentAttribute()
+        
+        if Settings.AutoStand and LocalPlayer.Character and not LocalPlayer.Character:FindFirstChild("Stand") then
+            PressKey(Enum.KeyCode.Q)
+        end
+
         if Settings.AutoQuest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local activeQuest = QuestData[Settings.SelectedQuest]
             StatusLabel.Text = "Görev: " .. Settings.SelectedQuest .. " | Attr: " .. currentAttr .. " | Kesilen: " .. KillCount .. "/" .. activeQuest.KillsRequired
@@ -408,6 +519,7 @@ task.spawn(function()
 
             elseif CurrentState == "FARMING" then
                 CurrentTarget = GetTargetMob()
+
                 if CurrentTarget ~= LastTarget then
                     if LastTarget and (not LastTarget:FindFirstChild("Humanoid") or LastTarget.Humanoid.Health <= 0 or not LastTarget.Parent) then
                         KillCount = KillCount + 1
